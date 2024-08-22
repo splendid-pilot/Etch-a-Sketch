@@ -1,31 +1,32 @@
 const DEFAULT_GRID_SIZE = 16;
-const DEFAULT_COLOR = "#000";
-const DEFAULT_MODE = "hover";
+const DEFAULT_COLOR = "#000000";
+const EMPTY_BACKGROUND = "#FEFEFE";
+const DEFAULT_MODE = "color";
 
-let currentGridSize = DEFAULT_GRID_SIZE;
+let currentSize = DEFAULT_GRID_SIZE;
 let currentColor = DEFAULT_COLOR;
 let currentMode = DEFAULT_MODE;
-let isDown = false;
+let isMouseDown = false;
 let isInCanvas = false;
 let showBorder = true;
-let isEraser = false;
-let prevColor = null;
+let darkenEnabled = true;
 
-const control = document.querySelector("#control");
 const canvas = document.querySelector("#canvas");
 const colorPicker = document.querySelector("#colorPicker");
 const sizePara = document.querySelector("#size-p");
 const sizeSlider = document.querySelector("#gridSize");
 const rainbowBtn = document.querySelector("#rainbow-btn");
 const grayscaleBtn = document.querySelector("#grayscale-btn");
+const colorBtn = document.querySelector("#color-btn");
 const eraserBtn = document.querySelector("#eraser-btn");
 const clearBtn = document.querySelector("#clear-btn");
 const borderCbx = document.querySelector("#show-border");
+const darkenCbx = document.querySelector("#darken");
 
 const width = canvas.clientWidth;
 const height = canvas.clientHeight;
 
-function setUpGrid(count) {
+function setupGrid(count) {
   canvas.innerHTML = "";
   for (let i = 0; i < count; i++) {
     let row = document.createElement("div");
@@ -45,17 +46,75 @@ function setUpGrid(count) {
     canvas.appendChild(row);
   }
 }
+function setCurrentColor(newColor) {
+  currentColor = newColor;
+}
+function setCurrentMode(newMode) {
+  // resetGrid();
+  activateButton(newMode);
+  currentMode = newMode;
+}
 
-function resetActive() {
-  document.querySelectorAll("button").forEach((node) => {
-    if (node.classList.contains("active") && node.innerText !== "Clear") {
-      node.classList.toggle("active");
+function setCurrentSize(newSize) {
+  currentSize = newSize;
+}
+
+function changeSize(value) {
+  setCurrentSize(value);
+  updateSizeValue(value);
+  reloadGrid();
+}
+
+function updateSizeValue(value) {
+  sizePara.innerHTML = `${value} &times; ${value}`;
+}
+
+function reloadGrid() {
+  clearGrid();
+  setupGrid(currentSize);
+}
+
+function clearGrid() {
+  canvas.innerHTML = "";
+}
+
+function changeColor(e) {
+  if (e.type === "mouseover" && !isMouseDown) return;
+  if (currentMode === "eraser") {
+    e.target.style.backgroundColor = EMPTY_BACKGROUND;
+    e.target.style.opacity = 1;
+    return;
+  }
+  let color;
+  if (currentMode === "rainbow") {
+    const randomR = Math.floor(Math.random() * 256);
+    const randomG = Math.floor(Math.random() * 256);
+    const randomB = Math.floor(Math.random() * 256);
+    color = `rgb(${randomR}, ${randomG}, ${randomB})`;
+  } else if (currentMode === "color") {
+    color = currentColor;
+  } else if (currentMode == "grayscale") {
+    const grayscaleValue = Math.floor(Math.random() * 256);
+    const hexValue = grayscaleValue.toString(16).padStart(2, "0");
+    const grayscaleColor = `#${hexValue}${hexValue}${hexValue}`;
+    color = grayscaleColor;
+  }
+  if (darkenEnabled) {
+    if (!e.target.style.backgroundColor) {
+      e.target.style.opacity = 0.1;
+    } else {
+      opacityAsNumber = Number(e.target.style.opacity);
+      if (opacityAsNumber < 1) {
+        opacityAsNumber += 0.1;
+        e.target.style.opacity = opacityAsNumber;
+      }
     }
-  });
+  } else {
+    e.target.style.opacity = 1;
+  }
+  e.target.style.backgroundColor = color;
 }
-function changeColor(node, color) {
-  node.style.backgroundColor = color;
-}
+
 function resetGrid() {
   for (let row of canvas.children) {
     for (let grid of row.children) {
@@ -63,116 +122,103 @@ function resetGrid() {
     }
   }
 }
-function setUpListener() {
-  clearBtn.addEventListener("click", () => {
-    resetGrid();
-  });
 
-  borderCbx.addEventListener("change", () => {
+function activateButton(newMode) {
+  if (currentMode === "rainbow") {
+    rainbowBtn.classList.remove("active");
+  } else if (currentMode === "color") {
+    colorBtn.classList.remove("active");
+  } else if (currentMode === "eraser") {
+    eraserBtn.classList.remove("active");
+  } else if (currentMode == "grayscale") {
+    grayscaleBtn.classList.remove("active");
+  }
+
+  if (newMode === "rainbow") {
+    rainbowBtn.classList.add("active");
+  } else if (newMode === "color") {
+    colorBtn.classList.add("active");
+  } else if (newMode === "eraser") {
+    eraserBtn.classList.add("active");
+  } else if (newMode === "grayscale") {
+    grayscaleBtn.classList.add("active");
+  }
+}
+
+function setUpListener() {
+  clearBtn.onclick = () => {
+    resetGrid();
+  };
+
+  borderCbx.onchange = () => {
     for (let row of canvas.children) {
       for (let grid of row.children) {
         if (borderCbx.checked) {
-          grid.style.border = "solid 1px black";
+          grid.classList.remove("no-border");
           showBorder = true;
         } else {
-          grid.style.border = "none";
+          grid.classList.toggle("no-border");
           showBorder = false;
         }
       }
     }
-  });
-  sizeSlider.addEventListener("input", () => {
+  };
+  darkenCbx.onchange = () => (darkenEnabled = !darkenEnabled);
+
+  sizeSlider.oninput = () => {
     let value = sizeSlider.valueAsNumber;
     sizePara.innerHTML = `${value} &times; ${value}`;
-  });
+  };
 
-  sizeSlider.addEventListener("change", () => {
-    let value = sizeSlider.valueAsNumber;
-    setUpGrid(value);
-  });
+  sizeSlider.onchange = (e) => setupGrid(e.target.valueAsNumber);
+  colorPicker.onchange = (e) => setCurrentColor(e.target.value);
+  eraserBtn.onclick = () => setCurrentMode("eraser");
+  colorBtn.onclick = () => setCurrentMode("color");
+  rainbowBtn.onclick = () => setCurrentMode("rainbow");
+  grayscaleBtn.onclick = () => setCurrentMode("grayscale");
 
-  colorPicker.addEventListener("change", () => {
-    currentColor = colorPicker.value;
-  });
-
-  eraserBtn.addEventListener("click", () => {
-    if (!isEraser) {
-      prevColor = currentColor;
-      currentColor = "#FFFFFF";
-      isEraser = true;
-    } else {
-      isEraser = false;
-      currentColor = prevColor;
-    }
-    resetActive();
-    eraserBtn.classList.toggle("active");
-  });
-
-  //TODO: Implement rainbow mode
-  rainbowBtn.addEventListener("click", () => {
-    resetActive();
-    currentColor = prevColor;
-    isEraser = false;
-    rainbowBtn.classList.toggle("active");
-  });
-
-  //TODO: Implement rainbow mode
-  grayscaleBtn.addEventListener("click", () => {
-    resetActive();
-    isEraser = false;
-    currentColor = prevColor;
-    grayscaleBtn.classList.toggle("active");
-  });
-
-  canvas.addEventListener("mouseover", (event) => {
+  canvas.onmouseover = (event) => {
     let id = event.target.id;
     if (id.startsWith("div")) {
-      if (isDown) {
-        changeColor(document.querySelector(`#${id}`), currentColor);
+      if (isMouseDown) {
+        changeColor(event);
       }
     }
-  });
+  };
 
-  canvas.addEventListener("mouseup", (event) => {
+  canvas.onmouseup = (event) => {
     let id = event.target.id;
     if (id.startsWith("div")) {
-      isDown = false;
+      isMouseDown = false;
     }
-  });
+  };
 
-  canvas.addEventListener("mousedown", (event) => {
+  canvas.onmousedown = (event) => {
     let id = event.target.id;
     if (id.startsWith("div")) {
-      isDown = true;
+      isMouseDown = true;
     }
-  });
+  };
+  canvas.onmouseout = () => (isInCanvas = false);
 
-  canvas.addEventListener("mouseout", () => {
-    isInCanvas = false;
-  });
-
-  document.addEventListener("mousedown", (event) => {
-    if (isDown && !isInCanvas) {
+  document.onmousedown = (event) => {
+    if (isMouseDown && !isInCanvas) {
       event.preventDefault();
     }
-  });
+  };
 
-  document.addEventListener("mousemove", (event) => {
-    if (isDown && !isInCanvas) {
+  document.onmousemove = (event) => {
+    if (isMouseDown && !isInCanvas) {
       event.preventDefault();
     }
-  });
+  };
 
-  document.addEventListener("mouseup", () => {
-    isDown = false;
-  });
+  document.onmouseup = () => (isMouseDown = false);
 
-  document.addEventListener("drag", (event) => {
-    event.preventDefault();
-  });
+  document.ondrag = (event) => event.preventDefault();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  setUpGrid(DEFAULT_GRID_SIZE);
+  setupGrid(DEFAULT_GRID_SIZE);
   setUpListener();
 });

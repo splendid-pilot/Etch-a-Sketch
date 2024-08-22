@@ -24,3 +24,6 @@
 button.active {
   background-color: yellow;
 }
+.grid.no-border {
+  border: none;
+}
