@@ -81,6 +81,7 @@ function clearGrid() {
 function changeColor(e) {
   if (e.type === "mouseover" && !isMouseDown) return;
   if (currentMode === "eraser") {
+    e.target.style.transition = "none";
     e.target.style.backgroundColor = EMPTY_BACKGROUND;
     e.target.style.opacity = 1;
     return;
@@ -102,6 +103,7 @@ function changeColor(e) {
   if (darkenEnabled) {
     if (!e.target.style.backgroundColor) {
       e.target.style.opacity = 0.1;
+      e.target.style.backgroundColor = color;
     } else {
       opacityAsNumber = Number(e.target.style.opacity);
       if (opacityAsNumber < 1) {
@@ -111,8 +113,8 @@ function changeColor(e) {
     }
   } else {
     e.target.style.opacity = 1;
+    e.target.style.backgroundColor = color;
   }
-  e.target.style.backgroundColor = color;
 }
 
 function resetGrid() {

@@ -12,35 +12,43 @@
     </header>
     <main>
       <div id="control">
-        <label for="colorPicker">Color:</label>
-        <input
-          id="colorPicker"
-          type="color"
-          name="colorPicker"
-          value="#000000"
-        />
-        <div class="">
-          <p id="size-p">16 &times; 16</p>
-          <label for="gridSize">Grid Size:</label>
+        <div class="group">
+          <label for="colorPicker">Color:</label>
           <input
-            type="range"
-            name="gridSize"
-            id="gridSize"
-            value="16"
-            step="1"
-            max="64"
-            min="4"
+            id="colorPicker"
+            type="color"
+            name="colorPicker"
+            value="#000000"
           />
         </div>
-        <button id="color-btn">Color</button>
-        <button id="rainbow-btn">Rainbow</button>
-        <button id="grayscale-btn">Grayscale</button>
-        <button id="eraser-btn">Eraser</button>
+        <!-- <p id="size-p" style="text-align: center">16 &times; 16</p> -->
+        <label for="gridSize"
+          >Grid Size: <span id="size-p">16 &times; 16</span></label
+        >
+        <input
+          type="range"
+          name="gridSize"
+          id="gridSize"
+          value="16"
+          step="1"
+          max="64"
+          min="4"
+        />
+        <div class="mode-buttons">
+          <button id="color-btn">Color</button>
+          <button id="rainbow-btn">Rainbow</button>
+          <button id="grayscale-btn">Grayscale</button>
+          <button id="eraser-btn">Eraser</button>
+        </div>
+        <div class="group">
+          <input type="checkbox" id="show-border" name="show-border" checked />
+          <label for="show-border">Show Border</label>
+        </div>
+        <div class="group">
+          <input type="checkbox" id="darken" name="darken" checked />
+          <label for="darken">Darken</label>
+        </div>
         <button id="clear-btn">Clear</button>
-        <input type="checkbox" id="show-border" name="show-border" checked />
-        <label for="show-border">Show Border</label>
-        <input type="checkbox" id="darken" name="darken" checked />
-        <label for="darken">Darken</label>
       </div>
       <div id="canvas"></div>
     </main>
